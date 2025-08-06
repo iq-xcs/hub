@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>xcshub — Roblox Multi-Hub</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet" />
+<style>
+  body, html {
+    margin: 0; padding: 0; min-height: 200vh;
+    background: #0f0f0f;
+    color: #eee;
+    font-family: Arial, sans-serif;
+    overflow-x: hidden;
+  }
+  #background-canvas {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 0;
+    pointer-events: none;
+    transition: opacity 0.6s ease;
+  }
+  /* Верхний бар с акрилом */
+  header {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%;
+    height: 56px;
+    background: rgba(31, 21, 63, 0.45);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    box-shadow: 0 0 20px rgba(159, 123, 255, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 24px;
+    z-index: 20;
+    user-select: none;
+  }
+  header .logo {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 22px;
+    color: #9f7bff;
+    letter-spacing: 2px;
+  }
+  header nav a {
+    color: #9f7bff;
+    margin-left: 24px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 16px;
+    transition: color 0.3s ease;
+  }
+  header nav a:hover {
+    color: #b590ff;
+  }
+  header nav {
+    display: flex;
+    align-items: center;
+  }
+  /* Центр экрана название и кнопка (ниже бар) */
+  .center-title {
+    position: fixed;
+    top: 40%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-family: 'Press Start 2P', monospace;
+    font-size: 56px;
+    color: #9f7bff;
+    text-shadow: 0 0 20px #9f7bffaa;
+    user-select: none;
+    z-index: 10;
+    transition: opacity 0.6s ease;
+    text-align: center;
+    width: 100%;
+  }
+  .scroll-down-btn {
+    position: fixed;
+    top: 60%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #9f7bff;
+    border: none;
+    padding: 14px 36px;
+    border-radius: 12px;
+    font-size: 18px;
+    color: #fff;
+    cursor: pointer;
+    box-shadow: 0 5px 15px #9f7bffaa;
+    transition: background 0.3s ease, box-shadow 0.3s ease, opacity 0.6s ease;
+    z-index: 10;
+  }
+  .scroll-down-btn:hover {
+    background: #b590ff;
+    box-shadow: 0 7px 20px #b590ffcc;
+  }
+  .content-container {
+    max-width: 700px;
+    margin: 100vh auto 80px;
+    padding: 20px;
+    color: #bbb;
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.8s ease, transform 0.8s ease;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    position: relative;
+    z-index: 5;
+  }
+  .content-container.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .content-container h2 {
+    color: #9f7bff;
+    font-weight: 700;
+    font-size: 24px;
+    margin-bottom: 20px;
+    text-align: center;
+  }
+  ul.info-list {
+    list-style-type: disc;
+    padding-left: 20px;
+    margin-bottom: 40px;
+    line-height: 1.6;
+    font-size: 18px;
+  }
+  .games {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    flex-wrap: wrap;
+    margin-bottom: 80px;
+  }
+  .game-box {
+    background: rgba(159, 123, 255, 0.2);
+    border: 2px solid #9f7bff;
+    border-radius: 12px;
+    padding: 18px 40px;
+    font-weight: 700;
+    font-size: 18px;
+    color: #9f7bff;
+    text-align: center;
+    user-select: none;
+    box-shadow: 0 0 15px #9f7bff88;
+    cursor: default;
+    min-width: 160px;
+    transition: background 0.3s ease, box-shadow 0.3s ease;
+  }
+  .game-box:hover {
+    background: rgba(159, 123, 255, 0.35);
+    box-shadow: 0 0 25px #b590ffcc;
+  }
+  .copy-btn-container {
+    max-width: 700px;
+    margin: 0 auto 100px;
+    padding: 0 20px;
+    text-align: center;
+  }
+  button.copy-btn {
+    background: #9f7bff;
+    border: none;
+    padding: 18px 44px;
+    border-radius: 12px;
+    font-size: 22px;
+    color: #fff;
+    cursor: pointer;
+    box-shadow: 0 5px 15px #9f7bffaa;
+    transition: background 0.3s ease, box-shadow 0.3s ease;
+  }
+  button.copy-btn:hover {
+    background: #b590ff;
+    box-shadow: 0 7px 20px #b590ffcc;
+  }
+  /* Иконки соцсетей */
+  .social-icon {
+    width: 24px;
+    height: 24px;
+    margin-left: 16px;
+    filter: drop-shadow(0 0 1px #9f7bff);
+    transition: filter 0.3s ease;
+    cursor: pointer;
+  }
+  .social-icon:hover {
+    filter: drop-shadow(0 0 8px #b590ff);
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">xcshub</div>
+  <nav>
+    <!-- Иконки соцсетей убраны из верхнего бара -->
+  </nav>
+</header>
+
+<canvas id="background-canvas"></canvas>
+
+<h1 class="center-title">xcshub</h1>
+
+<button class="scroll-down-btn" id="scrollBtn">Scroll Down</button>
+
+<div class="content-container" id="content">
+  <ul class="info-list">
+    <li>ESP (Player Highlights)</li>
+    <li>Aimbot (Auto Aim)</li>
+    <li>Teleport</li>
+    <li>Fling</li>
+    <li>AutoFarm & AutoClick</li>
+    <li>Custom UI</li>
+  </ul>
+
+  <h2>Supported Games</h2>
+  <div class="games">
+    <div class="game-box">Jailbreak</div>
+    <div class="game-box">KAT X</div>
+    <div class="game-box">Work at a Pizza Place</div>
+  </div>
+  
+  <h2>Why Choose xcshub?</h2>
+  <p>xcshub offers an extensive collection of Roblox scripts tailored for multiple popular games. It is designed to provide smooth and efficient enhancements that help you gain an edge in gameplay.</p>
+  <p>From player highlights through ESP, versatile aimbots, teleportation capabilities, to automatic farming and clicking, xcshub covers all your needs in one place.</p>
+  <p>Enjoy a clean, customizable user interface that adapts to various Roblox titles including Jailbreak, KAT X, Work at a Pizza Place, and a universal mode for many others.</p>
+
+  <h2>Features Overview</h2>
+  <ul>
+    <li>ESP for detecting players and NPCs through walls</li>
+    <li>Configurable aimbot modes for different playstyles</li>
+    <li>Instant teleportation across maps</li>
+    <li>Fling and crowd control mechanics</li>
+    <li>Automated farming and clicking tools</li>
+    <li>Easy-to-use, clean UI with custom settings</li>
+  </ul>
+
+  <h2>Getting Started</h2>
+  <p>Simply copy the loadstring using the button below, paste it into your Roblox executor, and get instant access to all features supported by xcshub.</p>
+
+  <h2>Safety & Updates</h2>
+  <p>We prioritize user safety by frequently updating scripts to avoid detection and ensure compatibility with the latest Roblox patches. Always use trusted executors and stay informed via our official channels.</p>
+
+  <h2>Community & Support</h2>
+  <p>Join our community for support, updates, and sharing tips. We encourage responsible use and fair play while maximizing your Roblox experience.</p>
+
+  <h2>More Games Coming Soon</h2>
+  <p>We're constantly working on adding support for more Roblox titles. Stay tuned for upcoming features and expansions to our multi-hub platform.</p>
+</div>
+
+<div class="copy-btn-container">
+  <button class="copy-btn" id="copyBtn">Copy Loadstring</button>
+</div>
+
+<script>
+function copyScript() {
+  const code = 'loadstring(game:HttpGet("https://raw.githubusercontent.com/iqua-dev/xcshub/main/script.lua"))()';
+  navigator.clipboard.writeText(code).then(() => {
+    alert("Loadstring copied to clipboard");
+  });
+}
+document.getElementById('copyBtn').onclick = copyScript;
+
+const canvas = document.getElementById('background-canvas');
+const ctx = canvas.getContext('2d');
+let width, height;
+
+function resize() {
+  width = window.innerWidth;
+  height = window.innerHeight;
+  canvas.width = width;
+  canvas.height = height;
+}
+resize();
+window.addEventListener('resize', resize);
+
+const dotsCount = 200; // больше точек!
+const maxDist = 100;
+const dots = [];
+
+class Dot {
+  constructor() {
+    this.x = Math.random() * width;
+    this.y = Math.random() * height;
+    this.vx = (Math.random() - 0.5) * 2.6;
+    this.vy = (Math.random() - 0.5) * 2.6;
+    this.radius = 2;
+  }
+  move() {
+    this.x += this.vx;
+    this.y += this.vy;
+    if (this.x < 0 || this.x > width) this.vx *= -1;
+    if (this.y < 0 || this.y > height) this.vy *= -1;
+  }
+  draw(alpha=1) {
+    ctx.beginPath();
+    ctx.fillStyle = `rgba(159, 123, 255, ${0.8 * alpha})`;
+    ctx.shadowColor = '#9f7bff';
+    ctx.shadowBlur = 6 * alpha;
+    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
+function connectDots() {
+  for (let i = 0; i < dots.length; i++) {
+    for (let j = i + 1; j < dots.length; j++) {
+      const dx = dots[i].x - dots[j].x;
+      const dy = dots[i].y - dots[j].y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist < maxDist) {
+        const avgY = (dots[i].y + dots[j].y) / 2;
+        const alphaY = 1 - (avgY / height);
+        const alphaDist = 1 - dist / maxDist;
+        const alpha = Math.min(alphaY, alphaDist);
+        ctx.strokeStyle = `rgba(159, 123, 255, ${alpha})`;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(dots[i].x, dots[i].y);
+        ctx.lineTo(dots[j].x, dots[j].y);
+        ctx.stroke();
+      }
+    }
+  }
+}
+
+function animate() {
+  ctx.clearRect(0, 0, width, height);
+
+  dots.forEach(dot => {
+    dot.move();
+    const alpha = 1 - dot.y / height; // fade by vertical position
+    dot.draw(alpha);
+  });
+
+  connectDots();
+
+  requestAnimationFrame(animate);
+}
+
+dots.length = 0;
+for (let i = 0; i < dotsCount; i++) {
+  dots.push(new Dot());
+}
+
+animate();
+
+const canvasElem = document.getElementById('background-canvas');
+const titleElem = document.querySelector('.center-title');
+const contentElem = document.getElementById('content');
+const btnContainer = document.querySelector('.copy-btn-container');
+const scrollBtn = document.getElementById('scrollBtn');
+
+scrollBtn.onclick = () => {
+  contentElem.scrollIntoView({behavior: "smooth"});
+};
+
+window.addEventListener('scroll', () => {
+  const scrollY = window.scrollY;
+  const fadePoint = window.innerHeight / 2;
+
+  let opacity = 1 - scrollY / fadePoint;
+  if (opacity < 0) opacity = 0;
+
+  canvasElem.style.opacity = opacity;
+  titleElem.style.opacity = opacity;
+  scrollBtn.style.opacity = opacity;
+
+  if (scrollY > fadePoint / 2) {
+    contentElem.classList.add('visible');
+    btnContainer.classList.add('visible');
+  } else {
+    contentElem.classList.remove('visible');
+    btnContainer.classList.remove('visible');
+  }
+});
+</script>
+
+</body>
+</html>
